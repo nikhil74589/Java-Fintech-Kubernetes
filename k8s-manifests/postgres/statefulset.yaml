@@ -6,7 +6,7 @@ metadata:
 
 spec:
   serviceName: postgress-service
-  replica: 1
+  replicas: 1
   selector:
     matchLabels:
       app: postgres
@@ -14,25 +14,29 @@ spec:
   template:
     metadata:
       labels:
-        app: postgres 
+        app: postgres
 
     spec:
       nodeSelector:
         kubernetes.io/hostname: worker-node-2
+
       containers:
         - name: postgres
           image: postgres:16-alpine
           ports:
             - containerPort: 5432
+
           envFrom:
-            -secretRef:
-              name: postgres-secretRef
+            - secretRef:
+                name: postgres-secretRef
+
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgres/data
-          redinessProbe:
+
+          readinessProbe:
             exec:
-              command: ["pg_isready","-U","banking_user","-d","bankingdb"]
+              command: ["pg_isready", "-U", "banking_user", "-d", "bankingdb"]
             initialDelaySeconds: 10
             periodSeconds: 5
 
@@ -40,8 +44,9 @@ spec:
     - metadata:
         name: postgres-storage
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes:
+          - ReadWriteOnce
         storageClassName: local-Path
         resources:
           requests:
-            storage: 5Gi                                   
+            storage: 5Gi
