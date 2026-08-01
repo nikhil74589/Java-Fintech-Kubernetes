@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: 
   name: backend
   namespace: banking
 
 spec:
   replicas: 1
   selector:
-    matcLabels:
+    matchLabels:
       app: backend
   template:
     metadata:
@@ -18,7 +18,7 @@ spec:
         kubernetes.io/hostname: worker-node-1
       containers:
         - name: backend
-          image: nikhil7458/java-banking-backend:1.0
+          image: nikhil7458/java-banking-backend:1.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -28,12 +28,12 @@ spec:
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secretKeyRef
+                  name: postgres-secret
                   key: POSTGRES_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: postgres-secret 
                   key: POSTGRES_PASSWORD
             - name: JWT_SECRET
               value: "1df0f6fe85156663c1c36121a92b3fc1702bcf52779752d63c25d75915bcd831"
@@ -41,10 +41,9 @@ spec:
               value: "86400000"
             - name: CORS_ALLOWED_ORIGIN
               value: "*"
-
           readinessProbe:
-            httpGet:
+            httpGet: 
               path: /actuator/health
               port: 8080
             initialDelaySeconds: 50
-            periogSeconds: 10      
+            periodSeconds: 10  
