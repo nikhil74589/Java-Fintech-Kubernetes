@@ -2,13 +2,12 @@ prometheus:
   prometheusSpec:
     retention: 15d
     nodeSelector:
-      kubernetes.io/hostname: worker-node-1
+      kubernetes.io/hostname: monitoring-node
     storageSpec:
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
-          accessModes:
-            - ReadWriteOnce
+          accessModes: ["ReadWriteOnce"]
           resources:
             requests:
               storage: 20Gi
@@ -21,8 +20,8 @@ prometheus:
         memory: 1Gi
 
 grafana:
-  nodeSelector:
-    kubernetes.io/hostname: worker-node-1
+  nodeselector:
+    kubernetes.io/hostname: monitoring-node
   persistence:
     enabled: true
     storageClassName: local-path
@@ -35,36 +34,34 @@ grafana:
 alertmanager:
   alertmanagerSpec:
     nodeSelector:
-      kubernetes.io/hostname: worker-node-1
+      kubernetes.io/hostname: monitoring-node
     storage:
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
-          accessModes:
-            - ReadWriteOnce
+          accessModes: ["ReadWriteOnce"]
           resources:
             requests:
               storage: 2Gi
+            
 
 additionalPrometheusRulesMap:
   custom-crashloop-rule:
     groups:
       - name: custom-kubernetes-apps
         rules:
-          - alert: KubePodCrashLoopingFast
+          - alert: kubePodCrashLoopingFast
             expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
             for: 30s
             labels:
               severity: warning
             annotations:
-              summary: "Pod is CrashLoopBackOff"
-              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is in CrashLoopBackOff."
+              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is in CrashLoopBackOff"
 
-          - alert: KubePodOOMKilled
-            expr: max_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[5m]) >= 1
+          - alert: kubePodOOMKilled
+            expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
             for: 10s
             labels:
               severity: critical
             annotations:
-              summary: "Pod container was OOMKilled"
-              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} was OOMKilled."
+              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} was OOMKilled"
