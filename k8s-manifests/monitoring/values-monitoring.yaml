@@ -7,7 +7,8 @@ prometheus:
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
-          accessModes: ["ReadWriteOnce"]
+          accessModes:
+            - ReadWriteOnce
           resources:
             requests:
               storage: 20Gi
@@ -20,7 +21,7 @@ prometheus:
         memory: 1Gi
 
 grafana:
-  nodeselector:
+  nodeSelector:
     kubernetes.io/hostname: worker-node-1
   persistence:
     enabled: true
@@ -39,29 +40,37 @@ alertmanager:
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
-          accessModes: ["ReadWriteOnce"]
+          accessModes:
+            - ReadWriteOnce
           resources:
             requests:
               storage: 2Gi
-            
 
 additionalPrometheusRuleMap:
   custom-crashloop-rule:
     groups:
       - name: custom-kubernetes-apps
         rules:
-          - alert: kubePodCrashLoopingFast
-            expr: max_overtime(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >=1
+          - alert: KubePodCrashLoopingFast
+            expr: |
+              max_over_time(
+                kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]
+              ) >= 1
             for: 30s
             labels:
               severity: warning
-            annotation:
-              description: "Pod {{ $labels.namespace}}/{{ $labels.pod}} is in CrashLoopBackOff"   
+            annotations:
+              summary: "Pod is CrashLoopBackOff"
+              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is in CrashLoopBackOff."
 
-          - alert: kubePodOOMKilled
-            expr: max_overtime(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}) == 1
+          - alert: KubePodOOMKilled
+            expr: |
+              max_over_time(
+                kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[5m]
+              ) >= 1
             for: 10s
             labels:
               severity: critical
-            annotation:
-              description: "Pod {{ $labels.namespace}}/{{ $labels.pod}} container {{ $labels.container}} was OOMKilled"                 
+            annotations:
+              summary: "Pod container was OOMKilled"
+              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} was OOMKilled."
