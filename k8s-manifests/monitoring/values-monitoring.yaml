@@ -20,7 +20,7 @@ prometheus:
         memory: 1Gi
 
 grafana:
-  nodeselector:
+  nodeSelector:
     kubernetes.io/hostname: monitoring-node
   persistence:
     enabled: true
@@ -52,13 +52,13 @@ alertmanager:
     global:
       resolve_timeout: 5m 
     route:
-      reciever: 'discord-notifications'
+      receiver: 'discord-notifications'
       group_by: ['alertname']
       group_wait: 30s
       group_interval: 5m
       repeat_interval: 4h
       routes:
-        - reciever: 'null'
+        - recievers: 'null'
           matchers:
             - alertname =~ "Watchdog|Kube.*Unreachable|Alertmanager.*Failed.*|etcd.*"
     reciever:
