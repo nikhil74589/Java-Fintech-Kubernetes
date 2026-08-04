@@ -58,10 +58,10 @@ alertmanager:
       group_interval: 5m
       repeat_interval: 4h
       routes:
-        - recievers: 'null'
+        - reciever: 'null'
           matchers:
             - alertname =~ "Watchdog|Kube.*Unreachable|Alertmanager.*Failed.*|etcd.*"
-    reciever:
+    recievers:
       - name: 'null'
       - name: 'discord-notifications'
         discord_configs:
