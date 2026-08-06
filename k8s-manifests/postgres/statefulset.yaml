@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: postgres
-  
+
   template:
     metadata:
       labels:
@@ -30,18 +30,26 @@ spec:
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
           readinessProbe:
             exec:
               command: ["pg_isready","-U","banking_user","-d","bankingdb"]
             initialDelaySeconds: 10
             periodSeconds: 5
 
+      volumes:
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+            defaultMode: 0777
+
   volumeClaimTemplates:
     - metadata:
         name: postgres-storage
       spec:
         accessModes: ["ReadWriteOnce"]
-        storageClassName: local-path    
+        storageClassName: local-path
         resources:
           requests:
-            storage: 5Gi     
+            storage: 5Gi
