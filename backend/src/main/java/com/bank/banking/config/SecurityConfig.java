@@ -57,9 +57,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        // 🟢 PUBLIC ENDPOINTS (No auth needed)
+                        .requestMatchers("/actuator/health").permitAll()           // Health check only
+                        .requestMatchers("/actuator/info").permitAll()             // Info only (no sensitive data)
+                        .requestMatchers("/api/auth/**").permitAll()               // Login & Register
+                        .requestMatchers("/swagger-ui/**").permitAll()             // API docs
+                        .requestMatchers("/v3/api-docs/**").permitAll()            // OpenAPI spec
+                        .requestMatchers("/v3/api-docs.yaml").permitAll()          // OpenAPI YAML
+                        
+                        // 🔴 ADMIN ENDPOINTS (ADMIN role required)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        
+                        // 🟡 PROTECTED ENDPOINTS (Authentication required)
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -73,12 +82,12 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(allowedOrigin));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         config.setAllowCredentials(false);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
 }
-
